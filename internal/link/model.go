@@ -6,21 +6,24 @@ import (
 	"gorm.io/gorm"
 )
 
+// Link represents a link with a URL and a unique hash
 type Link struct {
 	gorm.Model
-	Url  string `json:"url"`
+	URL  string `json:"url"`
 	Hash string `json:"hash" gorm:"uniqueIndex"`
 }
 
+// NewLink creates a new link with the given URL and unique hash
 func NewLink(url string) *Link {
 	return &Link{
-		Url:  url,
+		URL:  url,
 		Hash: RandStringRunes(10),
 	}
 }
 
 var letterRunes = []rune("aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ")
 
+// RandStringRunes generates a random string of a given length from alphabetic characters
 func RandStringRunes(n int) string {
 	b := make([]rune, n)
 	for i := 0; i < n; i++ {
