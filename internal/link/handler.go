@@ -3,22 +3,25 @@ package link
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/muhinfa/linkShortener/pkg/req"
+	"github.com/muhinfa/linkShortener/pkg/res"
 )
 
-// LinkHandlerDeps contains dependencies for the link handler
-type LinkHandlerDeps struct {
-	LinkRepository *LinkRepository
+// HandlerDeps contains dependencies for the link handler
+type HandlerDeps struct {
+	Repository *Repository
 }
 
-// LinkHandler processes requests related to links
-type LinkHandler struct {
-	LinkRepository *LinkRepository
+// Handler processes requests related to links
+type Handler struct {
+	Repository *Repository
 }
 
 // NewLinkHandler creates a new link handler and registers it with the router
-func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
-	handler := &LinkHandler{
-		LinkRepository: deps.LinkRepository,
+func NewLinkHandler(router *http.ServeMux, deps HandlerDeps) {
+	handler := &Handler{
+		Repository: deps.Repository,
 	}
 	router.HandleFunc("POST /link", handler.Create())
 	router.HandleFunc("PATCH /link/{id}", handler.Update())
@@ -27,19 +30,29 @@ func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
 }
 
 // Create handles the creation of a new link
-func (handler *LinkHandler) Create() http.HandlerFunc {
+func (handler *Handler) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		body, err := req.HandleBody[CreateRequest](&w, r)
+		if err != nil {
+			return
+		}
+		link := NewLink(body.URL)
+		createdLink, err := handler.Repository.Create(link)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		res.JSON(w, createdLink, http.StatusCreated)
 	}
 }
 
 // Update handles updating an existing link
-func (handler *LinkHandler) Update() http.HandlerFunc {
+func (handler *Handler) Update() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {}
 }
 
 // Delete handles deleting an existing link
-func (handler *LinkHandler) Delete() http.HandlerFunc {
+func (handler *Handler) Delete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		fmt.Println(id)
@@ -47,6 +60,6 @@ func (handler *LinkHandler) Delete() http.HandlerFunc {
 }
 
 // GoTo handles redirection by hash
-func (handler *LinkHandler) GoTo() http.HandlerFunc {
+func (handler *Handler) GoTo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {}
 }

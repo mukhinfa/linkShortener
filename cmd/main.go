@@ -23,8 +23,8 @@ func main() {
 	auth.NewAuthHandler(router, auth.AuthHandlerDeps{
 		Config: conf,
 	})
-	link.NewLinkHandler(router, link.LinkHandlerDeps{
-		LinkRepository: linkRepository,
+	link.NewLinkHandler(router, link.HandlerDeps{
+		Repository: linkRepository,
 	})
 
 	server := http.Server{
