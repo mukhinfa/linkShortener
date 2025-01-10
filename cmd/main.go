@@ -5,6 +5,7 @@ import (
 
 	"github.com/muhinfa/linkShortener/configs"
 	"github.com/muhinfa/linkShortener/internal/auth"
+	"github.com/muhinfa/linkShortener/internal/link"
 	"github.com/muhinfa/linkShortener/pkg/db"
 
 	"net/http"
@@ -12,10 +13,18 @@ import (
 
 func main() {
 	conf := configs.LoadConfig()
-	_ = db.NewDb(conf)
+	db := db.NewDb(conf)
 	router := http.NewServeMux()
+
+	//Repositories
+	linkRepository := link.NewLinkRepository(db)
+
+	//Handlers
 	auth.NewAuthHandler(router, auth.AuthHandlerDeps{
 		Config: conf,
+	})
+	link.NewLinkHandler(router, link.LinkHandlerDeps{
+		LinkRepository: linkRepository,
 	})
 
 	server := http.Server{
