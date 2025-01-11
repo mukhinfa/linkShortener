@@ -61,5 +61,13 @@ func (handler *Handler) Delete() http.HandlerFunc {
 
 // GoTo handles redirection by hash
 func (handler *Handler) GoTo() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {}
+	return func(w http.ResponseWriter, r *http.Request) {
+		hash := r.PathValue("hash")
+		link, err := handler.Repository.GetByHash(hash)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Redirect(w, r, link.URL, http.StatusTemporaryRedirect)
+	}
 }

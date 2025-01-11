@@ -22,3 +22,13 @@ func (repo *Repository) Create(link *Link) (*Link, error) {
 	}
 	return link, nil
 }
+
+// GetByHash retrieves a link by its hash
+func (repo *Repository) GetByHash(hash string) (*Link, error) {
+	var link Link
+	result := repo.DataBase.DB.First(&link, "hash = ?", hash)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &link, nil
+}
