@@ -30,14 +30,15 @@ func NewLinkHandler(router *http.ServeMux, deps HandlerDeps) {
 }
 
 // Create handles the creation of a new link
-func (handler *Handler) Create() http.HandlerFunc {
+func (h *Handler) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := req.HandleBody[CreateRequest](&w, r)
 		if err != nil {
 			return
 		}
 		link := NewLink(body.URL)
-		createdLink, err := handler.Repository.Create(link)
+		link.GenerateHash(h)
+		createdLink, err := h.Repository.Create(link)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -47,12 +48,12 @@ func (handler *Handler) Create() http.HandlerFunc {
 }
 
 // Update handles updating an existing link
-func (handler *Handler) Update() http.HandlerFunc {
+func (h *Handler) Update() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {}
 }
 
 // Delete handles deleting an existing link
-func (handler *Handler) Delete() http.HandlerFunc {
+func (h *Handler) Delete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		fmt.Println(id)
@@ -60,10 +61,10 @@ func (handler *Handler) Delete() http.HandlerFunc {
 }
 
 // GoTo handles redirection by hash
-func (handler *Handler) GoTo() http.HandlerFunc {
+func (h *Handler) GoTo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		hash := r.PathValue("hash")
-		link, err := handler.Repository.GetByHash(hash)
+		link, err := h.Repository.GetByHash(hash)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return

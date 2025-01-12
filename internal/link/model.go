@@ -13,12 +13,24 @@ type Link struct {
 	Hash string `json:"hash" gorm:"uniqueIndex"`
 }
 
-// NewLink creates a new link with the given URL and unique hash
+// NewLink creates a new link with the given URL
 func NewLink(url string) *Link {
 	return &Link{
-		URL:  url,
-		Hash: RandStringRunes(10),
+		URL: url,
 	}
+}
+
+// GenerateHash generates a unique hash for the link
+func (l *Link) GenerateHash(handler *Handler) string {
+	for {
+		hash := RandStringRunes(10)
+		if _, err := handler.Repository.GetByHash(hash); err != nil {
+			l.Hash = hash
+			break
+		}
+	}
+
+	return l.Hash
 }
 
 var letterRunes = []rune("aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ")
