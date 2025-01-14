@@ -1,11 +1,12 @@
 package link
 
 import (
-	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/muhinfa/linkShortener/pkg/req"
 	"github.com/muhinfa/linkShortener/pkg/res"
+	"gorm.io/gorm"
 )
 
 // HandlerDeps contains dependencies for the link handler
@@ -49,14 +50,50 @@ func (h *Handler) Create() http.HandlerFunc {
 
 // Update handles updating an existing link
 func (h *Handler) Update() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {}
+	return func(w http.ResponseWriter, r *http.Request) {
+		body, err := req.HandleBody[UpdateRequest](&w, r)
+		if err != nil {
+			return
+		}
+		idString := r.PathValue("id")
+		id, err := strconv.ParseUint(idString, 10, 32)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		link, err := h.Repository.Update(&Link{
+			Model: gorm.Model{ID: uint(id)},
+			URL:   body.URL,
+			Hash:  body.Hash,
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		res.JSON(w, link, http.StatusCreated)
+	}
 }
 
 // Delete handles deleting an existing link
 func (h *Handler) Delete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := r.PathValue("id")
-		fmt.Println(id)
+		idString := r.PathValue("id")
+		id, err := strconv.ParseUint(idString, 10, 32)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		_, err = h.Repository.getByID(uint(id))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		err = h.Repository.Delete(uint(id))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		res.JSON(w, nil, http.StatusOK)
 	}
 }
 
