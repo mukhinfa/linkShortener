@@ -7,6 +7,7 @@ import (
 	"github.com/muhinfa/linkShortener/internal/auth"
 	"github.com/muhinfa/linkShortener/internal/link"
 	"github.com/muhinfa/linkShortener/pkg/db"
+	"github.com/muhinfa/linkShortener/pkg/middleware"
 
 	"net/http"
 )
@@ -29,7 +30,7 @@ func main() {
 
 	server := http.Server{
 		Addr:    ":8081",
-		Handler: router,
+		Handler: middleware.Logging(router),
 	}
 
 	fmt.Println("Server is listening on port 8081")
